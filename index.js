@@ -1,16 +1,85 @@
-let balance = 500.00;
+class Account {
 
-class Withdrawal {
-
-  constructor(amount) {
-    this.amount = amount;
+  constructor(username) {
+    this.username = username;
+    this.transactions = [];
   }
 
-  commit() {
-    balance -= this.amount;
+  get balance() {
+    let balance = 0;
+    let trx = this.transactions;
+     if (trx === undefined) {
+      return balance;
+    }
+    else {
+      trx.forEach(function(transaction) {
+        if (transaction instanceof Withdrawal) {
+          balance -= transaction.amount;
+        }
+        else {
+          balance += transaction.amount;
+        }
+      });
+    }
+    return balance;
+  }
+
+  addTransaction(transaction) {
+    this.transactions.push(transaction);
   }
 
 }
+
+
+class Transaction {
+
+  constructor(amount, account) {
+    this.amount  = amount;
+    this.account = account;
+  }
+
+  commit() {
+    if (this.isAllowed()) {
+      this.time = new Date();
+      this.account.addTransaction(this);
+    }
+    else
+      {
+        console.log("Transaction is not valid");
+      }
+  }
+
+}
+
+
+class Withdrawal extends Transaction {
+
+  value() {
+    return this.amount * -1;
+  }
+
+  isAllowed () {
+    if ((this.account.balance - this.amount) < 0 ) {
+      return false;
+      }
+    else {
+      return true;
+    }
+  }
+}
+
+class Deposit extends Transaction {
+
+  value() {
+    return this.amount;
+  }
+
+  isAllowed() {
+    return true;
+  };
+
+}
+
 
 
 
@@ -18,12 +87,13 @@ class Withdrawal {
 // DRIVER CODE BELOW
 // We use the code below to "drive" the application logic above and make sure it's working as expected
 
-t1 = new Withdrawal(50.25);
+
+const myAccount = new Account('billybob');
+
+const t1 = new Deposit(10.00, myAccount);
 t1.commit();
-console.log('Transaction 1:', t1);
 
-t2 = new Withdrawal(9.99);
+const t2 = new Withdrawal(50.00, myAccount);
 t2.commit();
-console.log('Transaction 2:', t2);
 
-console.log('Balance:', balance);
+console.log('Ending Balance:', myAccount.balance);
